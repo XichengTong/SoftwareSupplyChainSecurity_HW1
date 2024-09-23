@@ -19,21 +19,21 @@ def get_log_entry(log_index, debug=False):
     Returns:
         dict: A dictionary containing the decoded signature and public key, or None if an error occurs.
     """
-    # Step 1: Construct the API URL to fetch the log entry by log index
+    # Construct the API URL to fetch the log entry by log index
     log_entry_url = f"{REKOR_API_URL}/api/v1/log/entries?logIndex={log_index}"
     
     try:
-        # Step 2: Make the GET request to fetch the log entry
+        # Make the GET request to fetch the log entry
         response = requests.get(log_entry_url)
         
-        # Step 3: Check if the request was successful
+        # Check if the request was successful
         if response.status_code == 200:
             log_entry = response.json()
 
             if debug:
                 print(f"Log entry fetched successfully: {log_entry}")
             
-            # Step 4: Access the entry's body and decode it from base64
+            # Access the entry's body and decode it from base64
             entry_data = next(iter(log_entry.values()))
             body_base64 = entry_data.get('body')
 
@@ -43,22 +43,24 @@ def get_log_entry(log_index, debug=False):
                 if debug:
                     print(f"Decoded body: {decoded_body}")
                 
-                # Step 5: Parse the decoded body as JSON
+                # Parse the decoded body as JSON
                 body_json = json.loads(decoded_body)
                 
-                # Step 6: Extract the signature and public key from the JSON data
+                # Extract the signature and public key from the JSON data
                 signature = body_json.get("spec", {}).get("signature", {}).get("content")
                 public_key = body_json.get("spec", {}).get("signature", {}).get("publicKey", {}).get("content")
+                
                 
                 if signature and public_key:
                     if debug:
                         print(f"Extracted signature: {signature}")
                         print(f"Extracted public key: {public_key}")
                     
-                    # Return the signature and public key
+                   
+                    # Return the signature and public key as PyBytes
                     return {
                         "signature": signature,
-                        "public_key": public_key
+                        "public_key": public_key  
                     }
                 else:
                     if debug:
@@ -89,37 +91,37 @@ def get_verification_proof(log_index, debug=False):
     Returns:
         dict: A dictionary containing the index, tree_size, hashes, root_hash, and leaf_hash.
     """
-    # Step 1: Validate log index
+    # Validate log index
     if not isinstance(log_index, int) or log_index < 0:
         raise ValueError("Log index must be a non-negative integer.")
     
     if debug:
         print(f"Fetching log entry for log index: {log_index}")
     
-    # Step 2: Fetch the log entry using the log index
+    # Fetch the log entry using the log index
     log_entry_url = f"{REKOR_API_URL}/api/v1/log/entries?logIndex={log_index}"
     
     try:
         response = requests.get(log_entry_url)
         if response.status_code == 200:
             log_entry = response.json()
-            entryUUID = next(iter(log_entry.keys()))  # Extract the entryUUID (key in the response)
+            entryUUID = next(iter(log_entry.keys()))  # Extract the entryUUID
 
             if debug:
                 print(f"Log entry fetched successfully: {log_entry}")
             
-            # Step 3: Access the entry's body (base64-encoded) directly
+            # Access the entry's body
             entry_data = log_entry[entryUUID]
             body_base64 = entry_data.get('body')
 
             if body_base64:
-                # Step 4: Compute the leaf hash directly using compute_leaf_hash
-                leaf_hash = compute_leaf_hash(body_base64)  # No manual base64 decoding
+                # Compute the leaf hash directly using compute_leaf_hash
+                leaf_hash = compute_leaf_hash(body_base64)  
                 
                 if debug:
                     print(f"Calculated leaf hash: {leaf_hash}")
                 
-                # Step 5: Extract inclusion proof data (index, tree_size, root_hash, and hashes) from log entry
+                # Extract inclusion proof data (index, tree_size, root_hash, and hashes) from log entry
                 inclusion_proof = entry_data.get("verification", {}).get("inclusionProof", {})
                 
                 tree_size = inclusion_proof.get("treeSize")
@@ -162,7 +164,7 @@ def inclusion(log_index, artifact_filepath, debug=False):
     Returns:
         bool: True if the inclusion proof and artifact signature are valid, False otherwise.
     """
-    # Step 1: Verify the log index and artifact file path
+    # Verify the log index and artifact file path
     if not isinstance(log_index, int) or log_index < 0:
         raise ValueError("Log index must be a non-negative integer.")
     
@@ -172,7 +174,7 @@ def inclusion(log_index, artifact_filepath, debug=False):
     if debug:
         print(f"Verifying log index: {log_index} and artifact: {artifact_filepath}")
     
-    # Step 2: Fetch the log entry and extract the certificate and signature
+    # SFetch the log entry and extract the public key and signature
     log_entry_data = get_log_entry(log_index, debug=debug)
     
     if not log_entry_data:
@@ -180,32 +182,35 @@ def inclusion(log_index, artifact_filepath, debug=False):
             print("Failed to fetch the log entry.")
         return False
     
-    certificate = log_entry_data.get("public_key")
+    public_key = log_entry_data.get("public_key")
     signature = log_entry_data.get("signature")
     
-    if not certificate or not signature:
+    
+    if not public_key or not signature:
         if debug:
-            print("Certificate or signature is missing in the log entry.")
+            print("Public key or signature is missing in the log entry.")
         return False
     
-    # Step 3: Extract the public key from the certificate
-    public_key = extract_public_key(certificate)
+    # Extract the public key (directly from PEM-formatted string)
+    public_key_decode = extract_public_key(base64.b64decode(public_key))  # Pass the PEM-formatted public key as bytes
     
-    if not public_key:
+    if not public_key_decode:
         if debug:
-            print("Failed to extract public key from the certificate.")
+            print("Failed to extract public key from the PEM-formatted public key.")
         return False
     
-    # Step 4: Verify the artifact's signature
-    if not verify_artifact_signature(signature, public_key, artifact_filepath):
+    # Verify the artifact's signature
+    if verify_artifact_signature(base64.b64decode(signature), public_key_decode, artifact_filepath):
         if debug:
             print("Artifact signature verification failed.")
         return False
     
-    if debug:
-        print("Artifact signature verified successfully.")
+    print("Signature is Valid.")
     
-    # Step 5: Get the inclusion proof and leaf hash
+    #if debug:
+    #    print("Artifact signature verified successfully.")
+    
+    # Get the inclusion proof and leaf hash
     proof_data = get_verification_proof(log_index, debug=debug)
     
     if not proof_data:
@@ -224,10 +229,9 @@ def inclusion(log_index, artifact_filepath, debug=False):
             print("Incomplete inclusion proof data.")
         return False
     
-    # Step 6: Verify the inclusion proof using the Merkle tree proof
-    if verify_inclusion(DefaultHasher(), index, tree_size, leaf_hash, hashes, root_hash):
-        if debug:
-            print("Inclusion proof verified successfully.")
+    # Verify the inclusion proof using the Merkle tree proof
+    if not verify_inclusion(DefaultHasher, index, tree_size, leaf_hash, hashes, root_hash):
+        print("Offline root hash calculation for inclusion verified.")
         return True
     else:
         if debug:
@@ -235,12 +239,97 @@ def inclusion(log_index, artifact_filepath, debug=False):
         return False
 
 def get_latest_checkpoint(debug=False):
-    pass
+    """
+    Fetch the latest checkpoint from the Rekor transparency log.
+
+    This function sends a GET request to the Rekor API to retrieve the most
+    recent checkpoint, which contains metadata about the current state of 
+    the transparency log, such as the tree size, root hash, and other details.
+
+    Parameters:
+        debug (bool): If True, additional debug information is printed.
+
+    Returns:
+        dict or None: A dictionary representing the latest checkpoint if 
+                      the request is successful, None otherwise.
+    """   
+    url = f"{REKOR_API_URL}/api/v1/log"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            latest_checkpoint = response.json()
+            if debug:
+                print(f"Latest checkpoint fetched successfully: {latest_checkpoint}")
+            #print(latest_checkpoint)
+            return latest_checkpoint
+        else:
+            if debug:
+                print(f"Failed to fetch the latest checkpoint. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        if debug:
+            print(f"Error while fetching the latest checkpoint: {e}")
+    return None
 
 def consistency(prev_checkpoint, debug=False):
-    # verify that prev checkpoint is not empty
-    # get_latest_checkpoint()
-    pass
+    """
+    Verify consistency between a previous checkpoint and the latest checkpoint.
+
+    This function checks whether the state of the transparency log has evolved 
+    in a consistent manner between two points in time. It does this by:
+    1. Fetching the latest checkpoint from the Rekor log.
+    2. Requesting a consistency proof from the Rekor API using the previous 
+       and latest tree sizes.
+    3. Verifying the consistency proof using the previous and latest root hashes.
+
+    Parameters:
+        prev_checkpoint (dict): The previous checkpoint containing details  
+                                'treeID', 'treeSize', and 'rootHash'.
+        debug (bool): If True, additional debug information is printed.
+
+    Returns:
+        bool: True if the consistency proof is valid and the logs are consistent,
+              False otherwise.
+    """   
+    if not prev_checkpoint or not all(k in prev_checkpoint for k in ['treeID', 'treeSize', 'rootHash']):
+        if debug:
+            print("Previous checkpoint details are incomplete.")
+        return False
+
+    latest_checkpoint = get_latest_checkpoint(debug)
+    if not latest_checkpoint:
+        return False
+    
+    # Extract necessary details from the latest checkpoint
+    latest_tree_size = latest_checkpoint.get('treeSize', 0)
+    tree_id = latest_checkpoint.get('treeID')
+
+    # Fetch the consistency proof from Rekor
+    url = f"{REKOR_API_URL}/api/v1/log/proof"
+    params = {
+        'firstSize': prev_checkpoint['treeSize'],
+        'lastSize': latest_tree_size,
+        'treeID': tree_id
+    }
+    
+    try:
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            proof_data = response.json()
+            hashes = proof_data.get('hashes', [])
+            if not verify_consistency(DefaultHasher, prev_checkpoint['treeSize'], latest_tree_size, hashes, prev_checkpoint['rootHash'], latest_checkpoint['rootHash']): 
+                print("Consistency verification successful.")
+                return True
+            else:
+                print("Consistency verification failed.")
+                return False
+        else:
+            if debug:
+                print(f"Failed to fetch consistency proof. Status code: {response.status_code}")
+            return False
+    except requests.exceptions.RequestException as e:
+        if debug:
+            print(f"Error while fetching consistency proof: {e}")
+        return False
 
 def main():
     debug = False
