@@ -3,9 +3,43 @@ import base64
 import json
 import os
 import requests
-REKOR_API_URL = "https://rekor.sigstore.dev"
 from util import extract_public_key, verify_artifact_signature
 from merkle_proof import DefaultHasher, verify_consistency, verify_inclusion, compute_leaf_hash
+
+def Validate_log_index(log_index):
+    """
+    Validates the provided log index to ensure it is a non-negative integer.
+
+    This function checks if the log index is an integer and if it is 
+    greater than or equal to 0. If the log index fails either condition, 
+    it raises a ValueError with an appropriate message.
+
+    Parameters:
+        log_index (int): The log index to validate.
+
+    Raises:
+        ValueError: If the log index is not an integer or is negative.
+    """
+    if not isinstance(log_index, int) or log_index < 0:
+        raise ValueError("Log index must be a non-negative integer.")
+ 
+
+def get_log_entry_url(log_index):
+    """
+    Constructs the log entry URL based on the log index provided.
+
+    Parameters:
+        log_index (int): The index of the log entry to fetch.
+
+    Returns:
+        str: The constructed URL for fetching the log entry.
+    """
+    # Fetch the rekor_api_url from environment variables or use the default URL
+    rekor_api_url = os.getenv("rekor_api_url", "https://rekor.sigstore.dev")
+    
+    # Construct and return the log entry URL
+    return f"{rekor_api_url}/api/v1/log/entries?logIndex={log_index}"
+
 
 def get_log_entry(log_index, debug=False):
     """
@@ -20,59 +54,57 @@ def get_log_entry(log_index, debug=False):
         dict: A dictionary containing the decoded signature and public key, or None if an error occurs.
     """
     # Construct the API URL to fetch the log entry by log index
-    log_entry_url = f"{REKOR_API_URL}/api/v1/log/entries?logIndex={log_index}"
+    log_entry_url = get_log_entry_url(log_index)
     
     try:
         # Make the GET request to fetch the log entry
         response = requests.get(log_entry_url)
         
         # Check if the request was successful
-        if response.status_code == 200:
-            log_entry = response.json()
+        if response.status_code != 200:
+            if debug:
+                print(f"Failed to fetch log entry. Status code: {response.status_code}")
+            return None
+
+        log_entry = response.json()
+
+            
+        # Access the entry's body and decode it from base64
+        entry_data = next(iter(log_entry.values()))
+        body_base64 = entry_data.get('body')
+
+        if body_base64:
+            decoded_body = base64.b64decode(body_base64).decode('utf-8')
 
             if debug:
-                print(f"Log entry fetched successfully: {log_entry}")
-            
-            # Access the entry's body and decode it from base64
-            entry_data = next(iter(log_entry.values()))
-            body_base64 = entry_data.get('body')
-
-            if body_base64:
-                decoded_body = base64.b64decode(body_base64).decode('utf-8')
-
+                print(f"Decoded body: {decoded_body}")
+                
+            # Parse the decoded body as JSON
+            body_json = json.loads(decoded_body)
+                
+            # Extract the signature and public key from the JSON data
+            signature = body_json.get("spec", {}).get("signature", {}).get("content")
+            public_key = body_json.get("spec", {}).get("signature", {}).get("publicKey", {}).get("content")
+                
+                
+            if signature and public_key:
                 if debug:
-                    print(f"Decoded body: {decoded_body}")
-                
-                # Parse the decoded body as JSON
-                body_json = json.loads(decoded_body)
-                
-                # Extract the signature and public key from the JSON data
-                signature = body_json.get("spec", {}).get("signature", {}).get("content")
-                public_key = body_json.get("spec", {}).get("signature", {}).get("publicKey", {}).get("content")
-                
-                
-                if signature and public_key:
-                    if debug:
-                        print(f"Extracted signature: {signature}")
-                        print(f"Extracted public key: {public_key}")
+                    print(f"Extracted signature: {signature}")
+                    print(f"Extracted public key: {public_key}")
                     
                    
-                    # Return the signature and public key as PyBytes
-                    return {
-                        "signature": signature,
-                        "public_key": public_key  
-                    }
-                else:
-                    if debug:
-                        print("Signature or public key not found in the decoded body.")
-                    return None
+                # Return the signature and public key as PyBytes
+                return {
+                    "signature": signature,
+                    "public_key": public_key  
+                }
             else:
                 if debug:
-                    print("Body field is missing or empty.")
+                    print("Signature or public key not found in the decoded body.")
                 return None
         else:
             if debug:
-                print(f"Failed to fetch log entry. Status code: {response.status_code}")
+                print("Body field is missing or empty.")
             return None
     except requests.exceptions.RequestException as e:
         if debug:
@@ -92,26 +124,25 @@ def get_verification_proof(log_index, debug=False):
         dict: A dictionary containing the index, tree_size, hashes, root_hash, and leaf_hash.
     """
     # Validate log index
-    if not isinstance(log_index, int) or log_index < 0:
-        raise ValueError("Log index must be a non-negative integer.")
-    
+    Validate_log_index(log_index)
+
     if debug:
         print(f"Fetching log entry for log index: {log_index}")
     
     # Fetch the log entry using the log index
-    log_entry_url = f"{REKOR_API_URL}/api/v1/log/entries?logIndex={log_index}"
+    log_entry_url = get_log_entry_url(log_index)
     
     try:
         response = requests.get(log_entry_url)
         if response.status_code == 200:
             log_entry = response.json()
-            entryUUID = next(iter(log_entry.keys()))  # Extract the entryUUID
+            entry_uuid = next(iter(log_entry.keys()))  # Extract the entry_uuid
 
             if debug:
                 print(f"Log entry fetched successfully: {log_entry}")
             
             # Access the entry's body
-            entry_data = log_entry[entryUUID]
+            entry_data = log_entry[entry_uuid]
             body_base64 = entry_data.get('body')
 
             if body_base64:
@@ -165,8 +196,8 @@ def inclusion(log_index, artifact_filepath, debug=False):
         bool: True if the inclusion proof and artifact signature are valid, False otherwise.
     """
     # Verify the log index and artifact file path
-    if not isinstance(log_index, int) or log_index < 0:
-        raise ValueError("Log index must be a non-negative integer.")
+    Validate_log_index(log_index)
+
     
     if not os.path.exists(artifact_filepath):
         raise ValueError(f"Artifact file {artifact_filepath} does not exist.")
@@ -252,8 +283,12 @@ def get_latest_checkpoint(debug=False):
     Returns:
         dict or None: A dictionary representing the latest checkpoint if 
                       the request is successful, None otherwise.
-    """   
-    url = f"{REKOR_API_URL}/api/v1/log"
+    """
+
+    # Fetch the rekor_api_url from environment variables or use the default URL
+    rekor_api_url = os.getenv("rekor_api_url", "https://rekor.sigstore.dev")
+       
+    url = f"{rekor_api_url}/api/v1/log"
     try:
         response = requests.get(url)
         if response.status_code == 200:
@@ -303,8 +338,11 @@ def consistency(prev_checkpoint, debug=False):
     latest_tree_size = latest_checkpoint.get('treeSize', 0)
     tree_id = latest_checkpoint.get('treeID')
 
+    # Fetch the rekor_api_url from environment variables or use the default URL
+    rekor_api_url = os.getenv("rekor_api_url", "https://rekor.sigstore.dev")
+
     # Fetch the consistency proof from Rekor
-    url = f"{REKOR_API_URL}/api/v1/log/proof"
+    url = f"{rekor_api_url}/api/v1/log/proof"
     params = {
         'firstSize': prev_checkpoint['treeSize'],
         'lastSize': latest_tree_size,
