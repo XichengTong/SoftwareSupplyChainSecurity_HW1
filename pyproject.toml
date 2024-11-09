@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "myproject"
+version = "3.0"
+description = ""
+authors = ["XichengTong <xt2226@nyu.edu>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sigstore-rekor-types = "^0.0.13"
+requests = "^2.32.3"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.3"
+pylint = "^3.3.1"
+mypy = "^1.13.0"
+bandit = "^1.7.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
