@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: TruffleHog
+        description: Detect secrets in your data.
+        entry: bash -c 'trufflehog --repo_path . --max_depth 1 git@github.com:XichengTong/SoftwareSupplyChainSecurity_HW1.git'
+        language: system
+        stages: ["pre-commit", "pre-push"]
