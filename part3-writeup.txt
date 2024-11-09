@@ -1,0 +1,4 @@
+git filter-repo --path personal.txt --invert-paths
+git remote add origin https://github.com/XichengTong/SoftwareSupplyChainSecurity_HW1.git
+git remote -v
+git push origin main --force
