@@ -62,18 +62,7 @@ def get_log_entry(log_index, debug=False):
                         "signature": signature,
                         "public_key": public_key  
                     }
-                else:
-                    if debug:
-                        print("Signature or public key not found in the decoded body.")
-                    return None
-            else:
-                if debug:
-                    print("Body field is missing or empty.")
-                return None
-        else:
-            if debug:
-                print(f"Failed to fetch log entry. Status code: {response.status_code}")
-            return None
+               
     except requests.exceptions.RequestException as e:
         if debug:
             print(f"Error while fetching log entry: {e}")

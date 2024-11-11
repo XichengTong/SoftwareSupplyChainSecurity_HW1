@@ -30,5 +30,5 @@ def test_checkpoint():
     # Validate structure of checkpoint
     validate(instance=data, schema=checkpoint_schema)
 
-if __name__ == "__main__":
-    test_checkpoint()
+#if __name__ == "__main__":
+#    test_checkpoint()
