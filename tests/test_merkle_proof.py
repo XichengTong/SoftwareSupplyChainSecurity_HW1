@@ -1,6 +1,6 @@
-# tests/test_verify_consistency.py
+
 import pytest
-import merkle_proof  # Import your merkle_proof file
+import merkle_proof  
 from jsonschema import validate
 
 def test_verify_consistency_invalid_proof_size():

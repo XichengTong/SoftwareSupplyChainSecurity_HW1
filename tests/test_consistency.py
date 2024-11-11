@@ -1,7 +1,7 @@
 import pytest
 import json
 from jsonschema import validate
-import main  # Import your main project file
+import main  
 
 # Define the JSON schema for the previous checkpoint
 checkpoint_schema = {
@@ -16,7 +16,7 @@ checkpoint_schema = {
 
 # Test function for consistency()
 def test_consistency():
-    # Create a mock previous checkpoint with the actual information
+    # Create a previous checkpoint with the actual information
     prev_checkpoint = {
         "treeID": "1193050959916656506",
         "treeSize": 130322369,

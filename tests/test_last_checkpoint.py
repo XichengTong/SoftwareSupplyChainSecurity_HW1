@@ -1,9 +1,9 @@
-# tests/test_checkpoint.py
+# tests/test_last_checkpoint.py
 import sys
 import json
 from jsonschema import validate
 import subprocess
-import main  # import your main project file
+import main  
 
 checkpoint_schema = {
     "type": "object",

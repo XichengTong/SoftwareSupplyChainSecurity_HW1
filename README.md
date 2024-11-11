@@ -77,10 +77,6 @@ To run the project, you'll need the following software installed:
    - `merkle_proof.py`: Contains methods for computing Merkle leaf hashes and verifying inclusion.
    - `util.py`: Utility functions for processing artifact data.
 
-### Configuration
-- Ensure to update `config.json` with relevant configuration values (e.g., API endpoints).
-- Add your Rekor server URL and public key in the configuration file.
-
 ### Running Tests
 Tests are provided to ensure the functionality of key modules:
 ```sh

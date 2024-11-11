@@ -1,8 +1,8 @@
-# tests/test_inclusion_errors.py
+# tests/test_inclusion.py
 import pytest
 import os
 import json
-import main  # Import your main project file
+import main  
 from jsonschema import validate
 
 def test_inclusion_invalid_log_index():

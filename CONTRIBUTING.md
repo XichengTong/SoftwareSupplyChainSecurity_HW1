@@ -35,7 +35,7 @@ Use your best judgment, and feel free to propose changes by opening a pull reque
 - **Testing Tools**: Use `pytest` or another recommended testing framework to ensure consistency.
 - **Running Tests**: Before submitting a pull request, run all tests locally to verify that nothing is broken. Use the command:
   ```sh
-  pytest
+  pytest tests/
   ```
 - **Continuous Integration**: Ensure that your changes do not break the build or tests in the CI pipeline. 
 Check the status of your pull request once submitted to make sure all tests pass in the CI environment.

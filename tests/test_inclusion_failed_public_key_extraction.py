@@ -1,7 +1,7 @@
 import pytest
 import os
 import json
-import main  # Import your main project file
+import main  
 from jsonschema import validate
 
 def test_inclusion_failed_public_key_extraction():
