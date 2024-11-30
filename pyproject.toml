@@ -1,11 +1,13 @@
 [tool.poetry]
 name = "myproject"
 version = "3.0"
-description = ""
+description = "A Python project for secure artifact management"
 authors = ["XichengTong <xt2226@nyu.edu>"]
 license = "MIT"
 readme = "README.md"
-package-mode = false
+packages = [
+    { include = "myproject", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"

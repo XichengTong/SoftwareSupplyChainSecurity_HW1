@@ -4,8 +4,14 @@ import json
 import os
 import requests
 REKOR_API_URL = "https://rekor.sigstore.dev"
-from util import extract_public_key, verify_artifact_signature
-from merkle_proof import DefaultHasher, verify_consistency, verify_inclusion, compute_leaf_hash
+from myproject.util import extract_public_key, verify_artifact_signature
+from myproject.merkle_proof import (
+    DefaultHasher,
+    verify_consistency,
+    verify_inclusion,
+    compute_leaf_hash,
+)
+
 
 def get_log_entry(log_index, debug=False):
     """

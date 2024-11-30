@@ -1,7 +1,7 @@
 import pytest
 import json
 from jsonschema import validate
-import main  
+import myproject.main as main  
 
 # Define the JSON schema for the expected response
 verification_proof_schema = {

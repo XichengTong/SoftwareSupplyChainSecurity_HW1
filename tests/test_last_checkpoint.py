@@ -3,7 +3,7 @@ import sys
 import json
 from jsonschema import validate
 import subprocess
-import main  
+import myproject.main as main  
 
 checkpoint_schema = {
     "type": "object",
@@ -19,7 +19,7 @@ checkpoint_schema = {
 
 def test_checkpoint():
     result = subprocess.run(
-        ['python', 'main.py', '-c'],
+        [sys.executable, 'src/myproject/main.py', '-c'],
         capture_output=True,
         text=True
     )

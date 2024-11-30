@@ -1,7 +1,7 @@
 # tests/test_util.py
 import pytest
 import base64
-import util  # Import your util file
+import myproject.util as util  # Import your util file
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 

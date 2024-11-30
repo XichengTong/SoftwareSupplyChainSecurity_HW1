@@ -1,7 +1,7 @@
 import pytest
 import json
 from jsonschema import validate
-import main  
+from myproject import main  
 
 # Define the JSON schema for the previous checkpoint
 checkpoint_schema = {
