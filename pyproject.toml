@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "myproject"
+name = "xichengtong-rekor"
 version = "3.0"
 description = "A Python project for secure artifact management"
 authors = ["XichengTong <xt2226@nyu.edu>"]
@@ -14,6 +14,9 @@ python = "^3.12"
 sigstore-rekor-types = "^0.0.13"
 requests = "^2.32.3"
 cryptography = "^43.0.3"
+
+[tool.poetry.scripts]
+xichengtong-rekor = "myproject.main:main"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.3"
