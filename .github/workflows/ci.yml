@@ -36,7 +36,7 @@ jobs:
 
       # Step 6: Run Bandit for Security Analysis
       - name: Run Bandit (Security Analysis)
-        run: bandit -r .
+        run: bandit -r . --exclude tests/
 
       # Step 7: Secret Scanning with TruffleHog
       - name: Secret Scanning with TruffleHog

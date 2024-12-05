@@ -32,7 +32,7 @@ def get_log_entry(log_index, debug=False):
     
     try:
         # Make the GET request to fetch the log entry
-        response = requests.get(log_entry_url)
+        response = requests.get(log_entry_url, timeout=10)
         
         # Check if the request was successful
         if response.status_code == 200:
@@ -99,7 +99,7 @@ def get_verification_proof(log_index, debug=False):
     log_entry_url = f"{REKOR_API_URL}/api/v1/log/entries?logIndex={log_index}"
     
     try:
-        response = requests.get(log_entry_url)
+        response = requests.get(log_entry_url, timeout=10)
         if response.status_code == 200:
             log_entry = response.json()
             entryUUID = next(iter(log_entry.keys()))  # Extract the entryUUID
@@ -252,7 +252,7 @@ def get_latest_checkpoint(debug=False):
     """   
     url = f"{REKOR_API_URL}/api/v1/log"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         if response.status_code == 200:
             latest_checkpoint = response.json()
             if debug:
@@ -309,7 +309,7 @@ def consistency(prev_checkpoint, debug=False):
     }
     
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, timeout=10)
         if response.status_code == 200:
             proof_data = response.json()
             hashes = proof_data.get('hashes', [])
