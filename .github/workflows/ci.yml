@@ -22,13 +22,13 @@ jobs:
       # Step 3: Install dependencies
       - name: Install Dependencies
         run: |
-          pip install ruff bandit pytest pytest-cov trufflehog
+          pip install bandit pytest pytest-cov trufflehog
 
       # Step 4: Code Formatting Check with Ruff
       - name: Code Formatting with Ruff
         uses: astral-sh/ruff-action@v1
         with:
-          args: --check
+          args: check .
 
       # Step 5: Linting with Ruff
       - name: Linting with Ruff
