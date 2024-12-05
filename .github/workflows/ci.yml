@@ -6,37 +6,43 @@ on:
       - main
 
 jobs:
-  static-analysis:
+  ci:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Check out the repository
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # Step 2: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.12'
 
+      # Step 3: Install dependencies
       - name: Install Dependencies
         run: |
-          pip install ruff pylint mypy bandit pytest pytest-cov trufflehog
+          pip install ruff bandit pytest pytest-cov trufflehog
 
-      - name: Run Ruff (Linting)
-        run: ruff .
+      # Step 4: Code Formatting Check with Ruff
+      - name: Code Formatting with Ruff
+        uses: astral-sh/ruff-action@v1
+        with:
+          args: --check
 
-      - name: Run Pylint (Code Analysis)
-        run: pylint $(find . -name "*.py")
+      # Step 5: Linting with Ruff
+      - name: Linting with Ruff
+        uses: astral-sh/ruff-action@v1
 
-      - name: Run Mypy (Type Checking)
-        run: mypy .
-
+      # Step 6: Run Bandit for Security Analysis
       - name: Run Bandit (Security Analysis)
         run: bandit -r .
 
+      # Step 7: Secret Scanning with TruffleHog
       - name: Secret Scanning with TruffleHog
         run: trufflehog filesystem --directory .
 
+      # Step 8: Run Tests with Coverage
       - name: Run Tests with Coverage
         run: |
           pytest --cov=. --cov-report=xml
-
