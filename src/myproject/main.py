@@ -3,7 +3,6 @@ import base64
 import json
 import os
 import requests
-REKOR_API_URL = "https://rekor.sigstore.dev"
 from myproject.util import extract_public_key, verify_artifact_signature
 from myproject.merkle_proof import (
     DefaultHasher,
@@ -11,6 +10,9 @@ from myproject.merkle_proof import (
     verify_inclusion,
     compute_leaf_hash,
 )
+
+REKOR_API_URL = "https://rekor.sigstore.dev"
+
 
 
 def get_log_entry(log_index, debug=False):
