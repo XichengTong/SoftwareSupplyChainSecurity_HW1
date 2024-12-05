@@ -1,0 +1,42 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          pip install ruff pylint mypy bandit pytest pytest-cov trufflehog
+
+      - name: Run Ruff (Linting)
+        run: ruff .
+
+      - name: Run Pylint (Code Analysis)
+        run: pylint $(find . -name "*.py")
+
+      - name: Run Mypy (Type Checking)
+        run: mypy .
+
+      - name: Run Bandit (Security Analysis)
+        run: bandit -r .
+
+      - name: Secret Scanning with TruffleHog
+        run: trufflehog filesystem --directory .
+
+      - name: Run Tests with Coverage
+        run: |
+          pytest --cov=. --cov-report=xml
+
