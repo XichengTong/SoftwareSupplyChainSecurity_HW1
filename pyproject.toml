@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xichengtong-rekor"
-version = "3.0"
+version = "4.0"
 description = "A Python project for secure artifact management"
 authors = ["XichengTong <xt2226@nyu.edu>"]
 license = "MIT"

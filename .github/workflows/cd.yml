@@ -3,31 +3,74 @@ name: Continuous Deployment
 on:
   push:
     tags:
-      - 'v*'
-jobs:
-  deployment:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - 'v*'  # Trigger on versioned tags, e.g., v1.0.0
 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Allow tag creation and artifact uploads
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
+      # Step 3: Install Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+
+      # Step 4: Install project dependencies
       - name: Install Dependencies
         run: |
-          pip install poetry cyclonedx-bom
+          poetry install --no-dev
 
-      - name: Build Project
-        run: poetry build
+      # Step 5: Build the project
+      - name: Build the Project
+        run: |
+          poetry build
 
-      - name: Generate SBOM
-        run: cyclonedx-py --output sbom.xml
-
-      - name: Upload Artifacts
+      # Step 6: Upload Build Artifacts
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Build-and-SBOM
-          path: sbom.xml
+          name: build-artifacts
+          path: dist/*
+
+      # Step 7: Install CycloneDX for SBOM generation
+      - name: Install CycloneDX
+        run: pip install cyclonedx-bom
+
+      # Step 8: Generate SBOM
+      - name: Generate SBOM
+        run: cyclonedx-py -o sbom.json
+
+      # Step 9: Install Cosign for signing SBOM
+      - name: Install Cosign
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/sigstore/cosign/main/install.sh | sh -s -- -b /usr/local/bin
+
+      # Step 10: Sign SBOM
+      - name: Sign SBOM
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign sign-blob --key ${{ secrets.COSIGN_PRIVATE_KEY }} --output-signature sbom.sig sbom.json
+
+      # Step 11: Upload SBOM and Signature
+      - name: Upload SBOM and Signature
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-and-signature
+          path: |
+            sbom.json
+            sbom.sig
