@@ -1,0 +1,33 @@
+name: Continuous Deployment
+
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install poetry cyclonedx-bom
+
+      - name: Build Project
+        run: poetry build
+
+      - name: Generate SBOM
+        run: cyclonedx-py --output sbom.xml
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build-and-SBOM
+          path: sbom.xml
