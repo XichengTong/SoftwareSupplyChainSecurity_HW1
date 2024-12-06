@@ -52,7 +52,7 @@ jobs:
 
       # Step 8: Generate SBOM
       - name: Generate SBOM
-        run: cyclonedx-py -o sbom.json
+        run: cyclonedx-py poetry --of JSON --outfile sbom.json
 
       # Step 9: Install Cosign for signing SBOM
       - name: Install Cosign
@@ -64,7 +64,7 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign sign-blob --key ${{ secrets.COSIGN_PRIVATE_KEY }} --output-signature sbom.sig sbom.json
+          cosign attest-blob --type cyclonedx --bundle sbom.bundle --output-signature sbom.json
 
       # Step 11: Upload SBOM and Signature
       - name: Upload SBOM and Signature
@@ -73,4 +73,4 @@ jobs:
           name: sbom-and-signature
           path: |
             sbom.json
-            sbom.sig
+            sbom.bundle
