@@ -65,7 +65,7 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign attest-blob --type cyclonedx --bundle sbom.bundle --output-signature sbom.json
+          cosign attest-blob --key ${{ secrets.COSIGN_PRIVATE_KEY }} --type cyclonedx --bundle sbom.bundle --output-signature sbom.json
 
       # Step 11: Upload SBOM and Signature
       - name: Upload SBOM and Signature
