@@ -11,6 +11,8 @@ jobs:
 
     permissions:
       contents: write  # Allow tag creation and artifact uploads
+      id-token: write
+      attestations: write
 
     steps:
       # Step 1: Check out the repository
@@ -50,26 +52,18 @@ jobs:
       - name: Install CycloneDX
         run: pip install cyclonedx-bom
 
-      # Step 8: Generate SBOM
-      - name: Generate SBOM
-        run: cyclonedx-py poetry --of JSON --outfile sbom.json
-
-      # Step 9: Install Cosign for signing SBOM
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.7.0
-        with:
-          cosign-release: 'v2.4.1'
-
-      - name: Attest SBOM
+      # Step 10: Create Attestation for SBOM
+      - name: Create SBOM Attestation
         run: |
-            cosign attest-blob \
-              --key cosign.key \
-              --predicate sbom.json \
-              --type cyclonedx \
-              --output-attestation sbom.attestation.json
+          cosign attest-blob --key cosign.key --type cyclonedx --predicate cyclonedx-sbom.json --bundle sbom-attestation.bundle --output-attestation sbom-attestation.json dist\xichengtong_rekor-3.0-py3-none-any.whl
 
+      # Step 11: Upload Attestation as Artifact
       - name: Upload Attestation
         uses: actions/upload-artifact@v3
         with:
           name: sbom-attestation
-          path: sbom.attestation.json
+          path: |
+            sbom-attestation.bundle
+            sbom-attestation.json
+
+
