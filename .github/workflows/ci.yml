@@ -39,8 +39,10 @@ jobs:
         run: bandit -r . -s B603,B101,B404 
 
       # Step 7: Secret Scanning with TruffleHog
-      - name: Secret Scanning with TruffleHog
-        run: trufflehog filesystem --directory .
+      - name: Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --results=verified,unknown
 
       # Step 8: Run Tests with Coverage
       - name: Run Tests with Coverage
