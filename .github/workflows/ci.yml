@@ -19,32 +19,38 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Step 3: Install dependencies
-      - name: Install Dependencies
+      # Step 3: Install Poetry
+      - name: Install Poetry
         run: |
-          pip install bandit pytest pytest-cov trufflehog
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
 
-      # Step 4: Code Formatting Check with Ruff
+      # Step 4: Install dependencies using Poetry
+      - name: Install Dependencies with Poetry
+        run: |
+          poetry install
+
+      # Step 5: Code Formatting Check with Ruff
       - name: Code Formatting with Ruff
         uses: astral-sh/ruff-action@v1
         with:
           args: check .
 
-      # Step 5: Linting with Ruff
+      # Step 6: Linting with Ruff
       - name: Linting with Ruff
         uses: astral-sh/ruff-action@v1
 
-      # Step 6: Run Bandit for Security Analysis
+      # Step 7: Run Bandit for Security Analysis
       - name: Run Bandit (Security Analysis)
         run: bandit -r . -s B603,B101,B404 
 
-      # Step 7: Secret Scanning with TruffleHog
+      # Step 8: Secret Scanning with TruffleHog
       - name: Secret Scanning
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --results=verified,unknown
 
-      # Step 8: Run Tests with Coverage
-      - name: Run Tests with Coverage
+      # Step 9: Run Tests with Poetry
+      - name: Run Tests with Coverage using Poetry
         run: |
-          pytest --cov=. --cov-report=xml
+          poetry run pytest --cov=. --cov-report=xml
