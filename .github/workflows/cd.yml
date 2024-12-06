@@ -54,9 +54,6 @@ jobs:
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.7.0
-      
-      - name: generate new key pair.
-        run: cosign generate-key-pair --key cosign.key --no-encrypt
 
       # Step 10: Create Attestation for SBOM
       - name: Create SBOM Attestation
