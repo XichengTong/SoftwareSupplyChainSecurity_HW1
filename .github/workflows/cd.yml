@@ -85,8 +85,6 @@ jobs:
           files: |
                 dist/*.whl
                 dist/*.tar.gz
-                sbom-attestation.bundle
-                sbom-attestation.json
           body: |
                 Release version ${{ github.ref_name }}
                 - Includes SBOM and attestation
