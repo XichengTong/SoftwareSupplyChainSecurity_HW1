@@ -60,18 +60,16 @@ jobs:
         with:
           cosign-release: 'v2.4.1'
 
-      # Step 10: Sign SBOM
-      - name: Sign SBOM
-        env:
-          COSIGN_EXPERIMENTAL: "true"
+      - name: Attest SBOM
         run: |
-          cosign attest-blob --key cosign.key --type cyclonedx --bundle sbom.bundle --output-signature sbom.json
+            cosign attest-blob \
+              --key cosign.key \
+              --predicate sbom.json \
+              --type cyclonedx \
+              --output-attestation sbom.attestation.json
 
-      # Step 11: Upload SBOM and Signature
-      - name: Upload SBOM and Signature
+      - name: Upload Attestation
         uses: actions/upload-artifact@v3
         with:
-          name: sbom-and-signature
-          path: |
-            sbom.json
-            sbom.bundle
+          name: sbom-attestation
+          path: sbom.attestation.json
