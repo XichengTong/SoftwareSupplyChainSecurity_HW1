@@ -54,11 +54,11 @@ jobs:
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.7.0
-        
+
       # Step 10: Create Attestation for SBOM
       - name: Create SBOM Attestation
         run: |
-          cosign attest-blob --key cosign.key --type cyclonedx --predicate cyclonedx-sbom.json --bundle sbom-attestation.bundle --output-attestation sbom-attestation.json dist\xichengtong_rekor-3.0-py3-none-any.whl
+          cosign attest-blob --key cosign.key --type cyclonedx --predicate cyclonedx-sbom.json --bundle sbom-attestation.bundle --output-attestation sbom-attestation.json dist/xichengtong_rekor-3.0-py3-none-any.whl
 
       # Step 11: Upload Attestation as Artifact
       - name: Upload Attestation
