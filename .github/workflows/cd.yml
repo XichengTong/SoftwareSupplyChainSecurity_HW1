@@ -57,13 +57,13 @@ jobs:
 
       - name: Create Cosign Key File
         run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key 
-        
+
       # Step 10: Create Attestation for SBOM
       - name: Create SBOM Attestation
         env:
          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
-          cosign attest-blob --key cosign.key --type cyclonedx --predicate cyclonedx-sbom.json --bundle sbom-attestation.bundle --output-attestation sbom-attestation.json dist/xichengtong_rekor-3.0-py3-none-any.whl
+          cosign attest-blob --key cosign.key --type cyclonedx --predicate cyclonedx-sbom.json --bundle sbom-attestation.bundle --output-attestation sbom-attestation.json dist/xichengtong_rekor-3.0-py3-none-any.whl --yes
 
       # Step 11: Upload Attestation as Artifact
       - name: Upload Attestation
