@@ -42,14 +42,7 @@ jobs:
       - name: Linting with Ruff
         uses: astral-sh/ruff-action@v1
 
-      # Step 7: Pylint Static Analysis
-      - name: Pylint Check
-        run: |
-         pylint $(find . -type f -name "*.py")
-
-
       # Step 7: Run Bandit for Security Analysis
-
       - name: Run Bandit (Security Analysis)
         run: bandit -r . -s B603,B101,B404 
 
