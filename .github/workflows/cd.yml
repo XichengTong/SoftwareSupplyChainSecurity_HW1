@@ -65,6 +65,11 @@ jobs:
         run: |
           cosign attest-blob --key cosign.key --type cyclonedx --predicate cyclonedx-sbom.json --bundle sbom-attestation.bundle --output-attestation sbom-attestation.json dist/xichengtong_rekor-3.0-py3-none-any.whl --yes
 
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+            subject-path: dist/xichengtong_rekor-3.0-py3-none-any.whl
+
       # Step 11: Upload Attestation as Artifact
       - name: Upload Attestation
         uses: actions/upload-artifact@v3
@@ -73,5 +78,20 @@ jobs:
           path: |
             sbom-attestation.bundle
             sbom-attestation.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+                dist/*.whl
+                dist/*.tar.gz
+                sbom-attestation.bundle
+                sbom-attestation.json
+          body: |
+                Release version ${{ github.ref_name }}
+                - Includes SBOM and attestation
+          prerelease: false
+        env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
