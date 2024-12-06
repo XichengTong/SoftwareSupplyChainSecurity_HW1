@@ -28,6 +28,7 @@ jobs:
       # Step 4: Install dependencies using Poetry
       - name: Install Dependencies with Poetry
         run: |
+          pip install bandit
           poetry install
 
       # Step 5: Code Formatting Check with Ruff
