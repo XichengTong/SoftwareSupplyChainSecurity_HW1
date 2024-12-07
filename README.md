@@ -1,5 +1,7 @@
 # Project Name: Software Supply Chain Security Verification
-
+[![Release](https://github.com/XichengTong/SoftwareSupplyChainSecurity_HW1/actions/workflows/cd.yml/badge.svg)](https://github.com/XichengTong/SoftwareSupplyChainSecurity_HW1/actions/workflows/cd.yml)
+[![Openssf Scorecard](https://github.com/XichengTong/SoftwareSupplyChainSecurity_HW1/actions/workflows/scorecard.yml/badge.svg)](https://github.com/XichengTong/SoftwareSupplyChainSecurity_HW1/actions/workflows/scorecard.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9777/badge)](https://www.bestpractices.dev/projects/9777)
 ## Description
 This project is designed to enhance software supply chain security by implementing artifact signing, 
 verification using a transparency log (e.g., Rekor), and cryptographic proof verification using Python. 
